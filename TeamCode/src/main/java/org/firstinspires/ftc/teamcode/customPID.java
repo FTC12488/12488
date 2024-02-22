@@ -42,7 +42,7 @@ public class customPID {
         }else{
             this.I = 0;
             this.lastIntegral = 0;
-            //test
+            //tes
         }
     }
     private void derivative(double error){
