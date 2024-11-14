@@ -19,6 +19,12 @@ public class Turn {
         this.dlift.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
+    public void reInit(){
+        this.dlift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.dlift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.dlift.setDirection(DcMotorSimple.Direction.REVERSE);
+    }
+
     public void setPower(double power){
         this.dlift.setPower(power);
     }
@@ -36,12 +42,13 @@ public class Turn {
     public void gotoMaxPosition(double percent){
         CustomPID c1 = new CustomPID(new double[]{.000001, 0.00004, 0.00001});
         c1.setSetpoint(-TURNMAX * percent);
-        while (((-TURNMAX * percent)-this.dlift.getCurrentPosition()) > 35){
+        if (Math.abs(((-TURNMAX * percent)-this.dlift.getCurrentPosition())) > 35){
             double[] outputs = c1.calculateGivenRaw(this.dlift.getCurrentPosition());
             double power = outputs[0];
             this.dlift.setPower(power);
+        }else{
+            this.dlift.setPower(0.0);
         }
-        this.dlift.setPower(0.0);
     }
 
 }

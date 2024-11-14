@@ -18,7 +18,9 @@ public class DriveTrainTest extends LinearOpMode {
     TelemetryPacket packet = new TelemetryPacket();
     FtcDashboard dashboard = FtcDashboard.getInstance();
     public static double distance;
-    public static double setpoint;
+    public static double targetTurn = 1.05;
+    public static double targetRotate = 0.63;
+    public static double targetRotatePlace = .12;
     public static double angle;
     public static double[] PidConstantsAngle = new double[]{1, 200, 0};
     private final double[] PidConstantsDistance = new double[]{0.0005, 0.01, 0};
@@ -36,6 +38,9 @@ public class DriveTrainTest extends LinearOpMode {
         claw.init(hardwareMap);
 //        boolean toggle = true;
         waitForStart();
+
+        claw.setRotate(.5);
+
         while (opModeIsActive()) {
 //            if(true){
 //                dt.fieldCentricDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, 1);
@@ -61,13 +66,14 @@ public class DriveTrainTest extends LinearOpMode {
             if(gamepad1.dpad_left){
                 dt.reInitFieldCentric();
                 lin.reInit();
+                turn.reInit();
             }
-            if(gamepad2.left_stick_y!=0 && turn.getPos() >= -100){
+            if(gamepad2.left_stick_y!=0 && turn.getPos() >= -350){
                 lin.moveLift(gamepad2.left_stick_y);
             }else{
                 lin.setPower(0);
             }
-            if(gamepad2.right_stick_y!=0 && lin.getPos() <= 150){
+            if(gamepad2.right_stick_y!=0 && lin.getPos() <= 350){
                 turn.turn(gamepad2.right_stick_y);
             }else{
                 turn.setPower(0);
@@ -86,10 +92,17 @@ public class DriveTrainTest extends LinearOpMode {
                 claw.setRotate(claw.getRotate() + .005);
             }
             if(gamepad2.x){
-                lin.gotoPosition(setpoint);
+                lin.gotoPosition(0);
+                turn.gotoMaxPosition(targetTurn);
+                claw.setRotate(targetRotate);
+            }
+            if(gamepad2.a){
+                turn.gotoMaxPosition(.9);
             }
             if(gamepad2.y){
-                turn.gotoMaxPosition(1);
+                turn.gotoMaxPosition(0);
+                lin.gotoPosition(3500);
+                claw.setRotate(targetRotatePlace);
             }
             packet.put("Angle", dt.getImu().getAngularOrientation().firstAngle);
             packet.put("X", dt.getxOdom().getCurrentPosition());
