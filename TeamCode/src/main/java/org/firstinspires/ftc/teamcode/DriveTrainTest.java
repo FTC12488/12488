@@ -24,6 +24,7 @@ public class DriveTrainTest extends LinearOpMode {
     public static double angle;
     public static double[] PidConstantsAngle = new double[]{1, 200, 0};
     private final double[] PidConstantsDistance = new double[]{0.0005, 0.01, 0};
+    public static double[] PidConstantsLift = new double[]{.25, 25, 0.009};
 
     private final DriveTrain dt = new DriveTrain();
     private final LinearLift lin = new LinearLift();
@@ -57,28 +58,28 @@ public class DriveTrainTest extends LinearOpMode {
             if(gamepad1.b){
                 dt.fixAngle(PidConstantsAngle, angle);
             }
-            if(gamepad1.right_bumper){
-                dt.incSpeed(0.02);
-            }
-            if(gamepad1.left_bumper){
-                dt.incSpeed(-0.02);
-            }
             if(gamepad1.dpad_left){
                 dt.reInitFieldCentric();
-                lin.reInit();
-                turn.reInit();
             }
-            if(gamepad2.left_stick_y!=0 && turn.getPos() >= -350){
+            if(gamepad1.right_bumper){
+                dt.incSpeed(0.1);
+            }
+            if(gamepad1.left_bumper){
+                dt.incSpeed(-0.1);
+            }
+            if(gamepad2.left_stick_y!=0 && ((turn.getPos() >= -300) || (gamepad2.dpad_down && (lin.getPos() <= 600)))){
                 lin.moveLift(gamepad2.left_stick_y);
             }else{
                 lin.setPower(0);
             }
-            if(gamepad2.right_stick_y!=0 && lin.getPos() <= 350){
+            if(gamepad2.right_stick_y!=0 && (lin.getPos() <= 300) || gamepad2.dpad_down){
                 turn.turn(gamepad2.right_stick_y);
             }else{
                 turn.setPower(0);
             }
-
+            if (gamepad2.right_trigger != 0){
+                claw.setRotate(claw.getRotate() - .005);
+            }
             if (gamepad2.right_bumper) {
                 claw.setClaw(.8);
             }
@@ -91,8 +92,11 @@ public class DriveTrainTest extends LinearOpMode {
             if(gamepad2.left_trigger != 0){
                 claw.setRotate(claw.getRotate() + .005);
             }
-            if(gamepad2.x){
-                lin.gotoPosition(0);
+            if(gamepad2.dpad_left){
+                lin.reInit();
+                turn.reInit();
+            }
+            if(gamepad2.x && (lin.getPos() < 300)){
                 turn.gotoMaxPosition(targetTurn);
                 claw.setRotate(targetRotate);
             }
@@ -101,7 +105,6 @@ public class DriveTrainTest extends LinearOpMode {
             }
             if(gamepad2.y){
                 turn.gotoMaxPosition(0);
-                lin.gotoPosition(3500);
                 claw.setRotate(targetRotatePlace);
             }
             packet.put("Angle", dt.getImu().getAngularOrientation().firstAngle);

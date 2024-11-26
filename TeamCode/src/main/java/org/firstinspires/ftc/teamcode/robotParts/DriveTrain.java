@@ -95,13 +95,18 @@ public class DriveTrain {
         this.bl.setPower(backLeftPower*this.speed);
         this.br.setPower(backRightPower*this.speed);
 
-        // Track Position
-        double deltaTime = (System.nanoTime() - timer) / 1e9;
-
-        this.xPos += leftStickX * deltaTime;
-        this.yPos += leftStickY * deltaTime;
-
-        timer = System.nanoTime();
+        // Accel
+//        if (Math.abs(leftStickX) > 0.1 || Math.abs(leftStickY) > 0.1){
+//            double timepassed = (System.nanoTime() - timer) / 1e9;
+//
+//            if (timepassed < .15){
+//                this.incSpeed(.015);
+//            }else{
+//                this.incSpeed(-0.03);
+//            }
+//
+//            timer = System.nanoTime();
+//        }
     }
     public void driveToLocation(double[] PidConstants, double theta, double distance){
         this.xOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -116,7 +121,6 @@ public class DriveTrain {
         while(!((Math.abs(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition())-distance))<= range/2.0)){
             double[] results = distanceControl.calculateGivenRaw(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition()));
             moveInDirection(theta, results[0]);
-            fixAngle(new double[]{1, 200, 0}, currAngle);
         }
         fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -162,8 +166,8 @@ public class DriveTrain {
         return radians;
     }
     public void moveInDirection(double theta, double power){
-        double sin = Math.sin(theta - Math.PI/4);
-        double cos = Math.cos(theta - Math.PI/4);
+        double sin = Math.sin(theta);
+        double cos = Math.cos(theta);
 
         this.fl.setPower(power * cos);
         this.fr.setPower(power * sin);

@@ -10,6 +10,7 @@ public class Turn {
     private DcMotor dlift;
 
     private final double INCHTOENCH = 115.35;
+    private static double TURNSTART = -1000;
     private final double TURNMAX = 1600;
 
     public void init(HardwareMap hwMap){
@@ -23,16 +24,17 @@ public class Turn {
         this.dlift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.dlift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.dlift.setDirection(DcMotorSimple.Direction.REVERSE);
+        TURNSTART = 0;
     }
 
     public void setPower(double power){
         this.dlift.setPower(power);
     }
     public double getPos(){
-        return this.dlift.getCurrentPosition();
+        return this.dlift.getCurrentPosition()+TURNSTART;
     }
     public void turn(double gamepadInput){
-        if (Math.abs(this.dlift.getCurrentPosition()) < TURNMAX) {
+        if (Math.abs(this.dlift.getCurrentPosition()+TURNSTART) < TURNMAX) {
             this.dlift.setPower(-0.2 * gamepadInput);
         } else {
             this.dlift.setPower(-0.05);
@@ -40,10 +42,10 @@ public class Turn {
     }
 
     public void gotoMaxPosition(double percent){
-        CustomPID c1 = new CustomPID(new double[]{.000001, 0.00004, 0.00001});
+        CustomPID c1 = new CustomPID(new double[]{.0000012, 0.000035, 0.000015});
         c1.setSetpoint(-TURNMAX * percent);
-        if (Math.abs(((-TURNMAX * percent)-this.dlift.getCurrentPosition())) > 35){
-            double[] outputs = c1.calculateGivenRaw(this.dlift.getCurrentPosition());
+        if (Math.abs(((-TURNMAX * percent)-(this.dlift.getCurrentPosition()+TURNSTART))) > 35){
+            double[] outputs = c1.calculateGivenRaw(this.dlift.getCurrentPosition()+TURNSTART);
             double power = outputs[0];
             this.dlift.setPower(power);
         }else{

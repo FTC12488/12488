@@ -64,7 +64,7 @@ public class RightAuto extends LinearOpMode {
                     break;
                 case "Lift":
                     distance = Double.parseDouble(instruction[1]);
-                    lin.gotoPosition(distance);
+//                    lin.gotoPosition(distance);
                     break;
                 case "DLift":
                     theta = Double.parseDouble(instruction[1]);

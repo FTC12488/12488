@@ -33,11 +33,10 @@ public class LinearLift {
     public double getPos(){
         return this.lift.getCurrentPosition();
     }
-    public void gotoPosition(double positionInches){
-        CustomPID c1 = new CustomPID(new double[]{.000003, 0.000012, 0.00003});
-        c1.setSetpoint(positionInches);
+    public void gotoPosition(double positionInches, CustomPID pid){
+        pid.setSetpoint(positionInches);
         if (Math.abs((positionInches-this.lift.getCurrentPosition())) > 45){
-            double[] outputs = c1.calculateGivenRaw(this.lift.getCurrentPosition());
+            double[] outputs = pid.calculateGivenRaw(this.lift.getCurrentPosition());
             double power = outputs[0];
             this.lift.setPower(power);
         }else{
@@ -46,7 +45,7 @@ public class LinearLift {
     }
     public void moveLift(double gamepadInput){
         if (Math.abs(this.lift.getCurrentPosition()) < LINMAX) {
-            this.lift.setPower(-0.3 * gamepadInput);
+            this.lift.setPower(-0.6 * gamepadInput);
         } else {
             this.lift.setPower(-0.15);
         }
