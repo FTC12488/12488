@@ -115,22 +115,14 @@ public class DriveTrain {
         this.yOdom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         theta = Math.toRadians(theta);
         CustomPID distanceControl = new CustomPID(PidConstants);
-        double range = 100;
-        double currAngle = imu.getAngularOrientation().firstAngle;
+//        double currAngle = imu.getAngularOrientation().firstAngle;
         distanceControl.setSetpoint(distance);
-        while(!((Math.abs(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition())-distance))<= range/2.0)){
+        while(true){
             double[] results = distanceControl.calculateGivenRaw(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition()));
+            if(results[0] < .05){break;}
             moveInDirection(theta, results[0]);
         }
-        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        moveInDirection(theta, 0);
-        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        zeroMotors();
     }
     public void rememberAndReturn(boolean remember, double[] PidConstants){
         if (remember){
@@ -144,17 +136,26 @@ public class DriveTrain {
             this.driveToLocation(PidConstants, angle, distance);
         }
     }
+    public void zeroMotors(){
+        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        moveInDirection(0, 0);
+        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
     public void fixAngle(double[] PidConstants, double angle) {
         CustomPID angleControl = new CustomPID(PidConstants);
         angleControl.setSetpoint(Math.toRadians(angle));
-        double range = Math.PI / 90;
-        if(!(Math.abs(imu.getAngularOrientation().firstAngle - Math.toRadians(angle)) <= range / 2.0)) {
-            double[] results = angleControl.calculateGivenError(angleWrap(Math.toRadians(angle)-imu.getAngularOrientation().firstAngle));
-            this.fl.setPower(-results[0]);
-            this.fr.setPower(results[0]);
-            this.bl.setPower(-results[0]);
-            this.br.setPower(results[0]);
-        }
+
+        double[] results = angleControl.calculateGivenError(angleWrap(Math.toRadians(angle)-imu.getAngularOrientation().firstAngle));
+        this.fl.setPower(-results[0]);
+        this.fr.setPower(results[0]);
+        this.bl.setPower(-results[0]);
+        this.br.setPower(results[0]);
     }
     private  double angleWrap(double radians){
         while(radians > Math.PI){
@@ -165,7 +166,13 @@ public class DriveTrain {
         }
         return radians;
     }
+
+    ///Moves robot in some Direction given a motor power (0-1) and an angle theta in radians (polar coords)
     public void moveInDirection(double theta, double power){
+        //Account for 38 degree offset (Motor powers are weird, IDK)
+        theta +=  + 36./180*Math.PI;
+
+        //Convert to motor powers
         double sin = Math.sin(theta);
         double cos = Math.cos(theta);
 
