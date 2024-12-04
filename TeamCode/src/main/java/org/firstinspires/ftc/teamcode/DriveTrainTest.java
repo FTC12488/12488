@@ -40,8 +40,6 @@ public class DriveTrainTest extends LinearOpMode {
 //        boolean toggle = true;
         waitForStart();
 
-        claw.setRotate(.5);
-
         while (opModeIsActive()) {
 //            if(true){
 //                dt.fieldCentricDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, 1);
@@ -51,6 +49,7 @@ public class DriveTrainTest extends LinearOpMode {
 //            if(gamepad1.start){
 //                toggle = !toggle;
 //            }
+            //Drive Train
             dt.fieldCentricDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, 1);
             if(gamepad1.a){
                 angle = dt.getImu().getAngularOrientation().firstAngle;
@@ -61,51 +60,49 @@ public class DriveTrainTest extends LinearOpMode {
             if(gamepad1.dpad_left){
                 dt.reInitFieldCentric();
             }
+            //Speed control
             if(gamepad1.right_bumper){
-                dt.incSpeed(0.1);
+                dt.incSpeed(0.4);
             }
             if(gamepad1.left_bumper){
-                dt.incSpeed(-0.1);
+                dt.incSpeed(-0.4);
             }
+            //Lift lift
             if(gamepad2.left_stick_y!=0 && ((turn.getPos() >= -300) || (gamepad2.dpad_down && (lin.getPos() <= 600)))){
                 lin.moveLift(gamepad2.left_stick_y);
             }else{
                 lin.setPower(0);
             }
+            //Turn lift
             if(gamepad2.right_stick_y!=0 && (lin.getPos() <= 300) || gamepad2.dpad_down){
                 turn.turn(gamepad2.right_stick_y);
             }else{
                 turn.setPower(0);
             }
-            if (gamepad2.right_trigger != 0){
-                claw.setRotate(claw.getRotate() - .005);
-            }
+            //Claw
             if (gamepad2.right_bumper) {
-                claw.setClaw(.8);
+                claw.powerIntake(.9);
+            } else if (gamepad2.left_bumper) {
+                claw.powerIntake(-.9);
+            }else{
+                claw.powerIntake(0);
             }
-            if (gamepad2.right_trigger != 0){
-                claw.setRotate(claw.getRotate() - .005);
-            }
-            if (gamepad2.left_bumper) {
-                claw.setClaw(.5);
-            }
-            if(gamepad2.left_trigger != 0){
-                claw.setRotate(claw.getRotate() + .005);
-            }
+            //Reinit Operator
             if(gamepad2.dpad_left){
                 lin.reInit();
                 turn.reInit();
             }
+            //Presets
             if(gamepad2.x && (lin.getPos() < 300)){
                 turn.gotoMaxPosition(targetTurn);
-                claw.setRotate(targetRotate);
+//                claw.setRotate(targetRotate);
             }
             if(gamepad2.a){
                 turn.gotoMaxPosition(.9);
             }
             if(gamepad2.y){
                 turn.gotoMaxPosition(0);
-                claw.setRotate(targetRotatePlace);
+//                claw.setRotate(targetRotatePlace);
             }
             packet.put("Angle", dt.getImu().getAngularOrientation().firstAngle);
             packet.put("X", dt.getxOdom().getCurrentPosition());
@@ -113,8 +110,8 @@ public class DriveTrainTest extends LinearOpMode {
             packet.put("Lin", lin.getPos());
             packet.put("Turn", turn.getPos());
             packet.put("Speed", dt.getSpeed());
-            packet.put("Claw Rotation", claw.getRotate());
-            packet.put("Claw Open", claw.getPos());
+//            packet.put("Claw Rotation", claw.getRotate());
+//            packet.put("Claw Open", claw.getPos());
 
             dashboard.sendTelemetryPacket(packet);
         }

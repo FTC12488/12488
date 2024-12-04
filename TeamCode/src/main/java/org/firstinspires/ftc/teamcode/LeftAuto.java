@@ -99,13 +99,13 @@ public class LeftAuto extends LinearOpMode {
                     break;
                 case "Rotate":
                     theta = Double.parseDouble(instruction[1]);
-                    claw.setRotate(theta);
+//                    claw.setRotate(theta);
                     break;
                 case "Claw":
                     if (instruction[1].equals("Close")){
-                        claw.setClaw(.8);
+//                        claw.setClaw(.8);
                     }else{
-                        claw.setClaw(.5);
+//                        claw.setClaw(.5);
                     }
                     break;
             }

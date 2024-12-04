@@ -14,22 +14,27 @@ public class Claw {
     private CRServo intake;
 
     public void init(HardwareMap hwMap){
-        this.claw = hwMap.get(Servo.class, "claw");
-        this.claw.setDirection(Servo.Direction.REVERSE);
-        this.rotate = hwMap.get(Servo.class, "rotate");
-        this.rotate.setDirection(Servo.Direction.REVERSE);
-        this.intake = hwMap.get(CRServo.class, "intake");
+//        this.claw = hwMap.get(Servo.class, "claw");
+//        this.claw.setDirection(Servo.Direction.REVERSE);
+//        this.rotate = hwMap.get(Servo.class, "rotate");
+//        this.rotate.setDirection(Servo.Direction.REVERSE);
+        this.intake = hwMap.get(CRServo.class, "claw");
         this.intake.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
-    public void setClaw(double pos) {
-        this.claw.setPosition(pos);
+//    public void setClaw(double pos) {
+//        this.claw.setPosition(pos);
+//    }
+//
+//    public void setRotate(double pos){
+//        this.rotate.setPosition(pos);
+//    }
+
+    public void powerIntake(double power) {
+        this.intake.setPower(power);
     }
 
-    public void setRotate(double pos){
-        this.rotate.setPosition(pos);
-    }
 
-    public double getPos(){return this.claw.getPosition();}
-    public double getRotate(){return this.rotate.getPosition();}
+//    public double getPos(){return this.claw.getPosition();}
+//    public double getRotate(){return this.rotate.getPosition();}
 }

@@ -28,13 +28,13 @@ public class AutoTest extends LinearOpMode {
 
     public static String[][] instructions = {
             //Move forward
-            {"Drive", "0", "8000"},
+            {"Drive", "0", "8000", "True"},
             {"Turn", "180"},
             {"Lift", "600"},
-            {"Drive", "180", "1000"},
+            {"Drive", "180", "1000", "False"},
             {"Lift", "0"},
             {"Turn", "180"},
-            {"Drive", "135", "10000"},
+            {"Drive", "135", "10000", "True"},
 //
 //            //Place
 //            {"Lift", "400"},
@@ -57,22 +57,24 @@ public class AutoTest extends LinearOpMode {
             double distance = 0;
             double timeout = System.nanoTime();
             switch (instruction[0]) {
-                case "Drive":
+                case "Drive": //PARAM: 1 - Angle, 2 - Distance, 3 - Fix Rotation (Only use when driving with 0 starting orientation)
                     double oldAngle = dt.getImu().getAngularOrientation().firstAngle;
                     theta = Double.parseDouble(instruction[1]);
                     distance = Double.parseDouble(instruction[2]);
                     dt.driveToLocation(PidConstantsDistance, theta, distance);
 
                     //Fix Angle
-                    timeout = System.nanoTime(); //Make sure it's basing the timeout on time passed since robot reached target loc
-                    theta = dt.getImu().getAngularOrientation().firstAngle-oldAngle;
-                    while(Math.abs((Math.toRadians(theta)-dt.getImu().getAngularOrientation().firstAngle)) > .02 && opModeIsActive()){
-                        if((System.nanoTime() - timeout)/1e9 > 1){
-                            break;
+                    if(instruction[3].equals("True")) {
+                        timeout = System.nanoTime(); //Make sure it's basing the timeout on time passed since robot reached target loc
+                        theta = dt.getImu().getAngularOrientation().firstAngle-oldAngle;
+                        while(Math.abs((Math.toRadians(theta)-dt.getImu().getAngularOrientation().firstAngle)) > .02 && opModeIsActive()){
+                            if((System.nanoTime() - timeout)/1e9 > 1){
+                                break;
+                            }
+                            dt.fixAngle(PidConstantsAngle, theta);
+                            packet.put("Angle", dt.getImu().getAngularOrientation().firstAngle);
+                            dashboard.sendTelemetryPacket(packet);
                         }
-                        dt.fixAngle(PidConstantsAngle, theta);
-                        packet.put("Angle", dt.getImu().getAngularOrientation().firstAngle);
-                        dashboard.sendTelemetryPacket(packet);
                     }
                     dt.zeroMotors();
                     break;
