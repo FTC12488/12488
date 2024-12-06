@@ -40,6 +40,8 @@ public class DriveTrainTest extends LinearOpMode {
 //        boolean toggle = true;
         waitForStart();
 
+        claw.setRotate(.5);
+
         while (opModeIsActive()) {
 //            if(true){
 //                dt.fieldCentricDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, 1);
@@ -80,12 +82,18 @@ public class DriveTrainTest extends LinearOpMode {
                 turn.setPower(0);
             }
             //Claw
+            if (gamepad2.right_trigger != 0) {
+                claw.setRotate(claw.getRotate()+0.005);
+            }
+            if (gamepad2.left_trigger != 0) {
+                claw.setRotate(claw.getRotate()-0.005);
+            }
+            //Claw Open/close
+            if (gamepad2.left_bumper) {
+                claw.setClaw(.5);
+            }
             if (gamepad2.right_bumper) {
-                claw.powerIntake(.9);
-            } else if (gamepad2.left_bumper) {
-                claw.powerIntake(-.9);
-            }else{
-                claw.powerIntake(0);
+                claw.setClaw(.8);
             }
             //Reinit Operator
             if(gamepad2.dpad_left){
@@ -95,14 +103,14 @@ public class DriveTrainTest extends LinearOpMode {
             //Presets
             if(gamepad2.x && (lin.getPos() < 300)){
                 turn.gotoMaxPosition(targetTurn);
-//                claw.setRotate(targetRotate);
+                claw.setRotate(targetRotate);
             }
             if(gamepad2.a){
-                turn.gotoMaxPosition(.9);
+                turn.gotoMaxPosition(.75);
             }
             if(gamepad2.y){
                 turn.gotoMaxPosition(0);
-//                claw.setRotate(targetRotatePlace);
+                claw.setRotate(targetRotatePlace);
             }
             packet.put("Angle", dt.getImu().getAngularOrientation().firstAngle);
             packet.put("X", dt.getxOdom().getCurrentPosition());
@@ -110,8 +118,8 @@ public class DriveTrainTest extends LinearOpMode {
             packet.put("Lin", lin.getPos());
             packet.put("Turn", turn.getPos());
             packet.put("Speed", dt.getSpeed());
-//            packet.put("Claw Rotation", claw.getRotate());
-//            packet.put("Claw Open", claw.getPos());
+            packet.put("Claw Rotation", claw.getRotate());
+            packet.put("Claw Open", claw.getPos());
 
             dashboard.sendTelemetryPacket(packet);
         }
