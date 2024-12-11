@@ -108,7 +108,7 @@ public class DriveTrain {
 //            timer = System.nanoTime();
 //        }
     }
-    public void driveToLocation(double[] PidConstants, double theta, double distance){
+    public void driveToLocation(double[] PidConstants, double theta, double distance, double timeout){
         this.xOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.yOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.xOdom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -117,9 +117,11 @@ public class DriveTrain {
         CustomPID distanceControl = new CustomPID(PidConstants);
 //        double currAngle = imu.getAngularOrientation().firstAngle;
         distanceControl.setSetpoint(distance);
+        double timer = System.nanoTime();
         while(true){
             double[] results = distanceControl.calculateGivenRaw(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition()));
             if(results[0] < .05){break;}
+            if((System.nanoTime() - timer)/1e9 > timeout){break;}
             moveInDirection(theta, results[0]);
         }
         zeroMotors();
@@ -133,7 +135,7 @@ public class DriveTrain {
             double yDiff = this.yPos - this.yPosSave;
             double angle = Math.toDegrees(Math.tan(yDiff/xDiff));
             double distance = Math.sqrt(Math.pow(yDiff, 2) + Math.pow(xDiff, 2));
-            this.driveToLocation(PidConstants, angle, distance);
+            this.driveToLocation(PidConstants, angle, distance, 3);
         }
     }
     public void zeroMotors(){

@@ -60,8 +60,7 @@ public class LeftAuto extends LinearOpMode {
                     double oldAngle = dt.getImu().getAngularOrientation().firstAngle;
                     theta = Double.parseDouble(instruction[1]);
                     distance = Double.parseDouble(instruction[2]);
-                    dt.driveToLocation(PidConstantsDistance, theta, distance);
-
+                    dt.driveToLocation(PidConstantsDistance, theta, distance, 4);
                     //Fix Angle
                     if(instruction[3].equals("True")) {
                         timeout = System.nanoTime(); //Make sure it's basing the timeout on time passed since robot reached target loc
@@ -92,6 +91,9 @@ public class LeftAuto extends LinearOpMode {
                 case "Lift":
                     distance = Double.parseDouble(instruction[1]);
                     while(Math.abs(distance-lin.getPos()) > 45){
+                        if((System.nanoTime() - timeout)/1e9 > 3){
+                            break;
+                        }
                         lin.gotoPosition(distance, new CustomPID(PidConstantsAngle));
                         packet.put("Lin", lin.getPos());
                         dashboard.sendTelemetryPacket(packet);
@@ -99,7 +101,12 @@ public class LeftAuto extends LinearOpMode {
                     break;
                 case "DLift":
                     theta = Double.parseDouble(instruction[1]);
-                    turn.gotoMaxPosition(theta);
+                    while(Math.abs(theta-lin.getPos()) > .05){
+                        if((System.nanoTime() - timeout)/1e9 > 3){
+                            break;
+                        }
+                        turn.gotoMaxPosition(theta);
+                    }
                     break;
 //                case "Rotate":
 //                    theta = Double.parseDouble(instruction[1]);

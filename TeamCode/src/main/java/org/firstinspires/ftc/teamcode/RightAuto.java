@@ -70,7 +70,7 @@ public class RightAuto extends LinearOpMode {
                     double oldAngle = dt.getImu().getAngularOrientation().firstAngle;
                     theta = Double.parseDouble(instruction[1]);
                     distance = Double.parseDouble(instruction[2]);
-                    dt.driveToLocation(PidConstantsDistance, theta, distance);
+                    dt.driveToLocation(PidConstantsDistance, theta, distance, 4.5);
 
                     //Fix Angle
                     if(instruction[3].equals("True")) {

@@ -31,7 +31,7 @@ public class Turn {
         this.dlift.setPower(power);
     }
     public double getPos(){
-        return this.dlift.getCurrentPosition()+TURNSTART;
+        return Math.abs(this.dlift.getCurrentPosition()+TURNSTART)/TURNMAX;
     }
     public void turn(double gamepadInput){
         if (Math.abs(this.dlift.getCurrentPosition()+TURNSTART) < TURNMAX) {
