@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.robotParts.DriveTrain;
 import org.firstinspires.ftc.teamcode.robotParts.LinearLift;
 import org.firstinspires.ftc.teamcode.robotParts.Turn;
+import org.firstinspires.ftc.teamcode.robotParts.Claw;
 
 @Autonomous(name="LeftAuto", group="Linear OpMode")
 @Config
@@ -22,17 +23,46 @@ public class LeftAuto extends LinearOpMode {
     private final DriveTrain dt = new DriveTrain();
     private final LinearLift lin = new LinearLift();
     private final Turn turn = new Turn();
-//    private final Claw claw = new Claw();
+    private final Claw claw = new Claw();
 
     public static String[][] instructions = {
             //park lol
-            {"Drive", "270", "40000", "True"},
-            {"Turn", "180"},
-            {"Lift", "1600"},
+//            {"Drive", "0", "8000", "True"},
+//            {"Turn", "180"},
+//            {"DLift", "0"},
+//            {"Lift", "1600"},
+//            {"Drive", "180", "2000", "False"},
+//            {"Lift", "0"},
+//            {"Drive", "0", "2000", "False"},
+//            {"Turn", "180"},
+//            {"Drive", "180", "7500", "True"},
+
+            //Position
+            {"Drive", "0", "12000", "True"},
+            {"Turn", "90"},
+            {"Rotate", ".7"},
+            {"Claw", "Close"},
+            {"Claw", "Open"},
+            {"DLift", ".75"},
+            {"Drive", "-10", "5000", "False"},
+            {"Turn", "90"},
+            //Grab
+            {"Claw", "Close"},
+
+            //Get in Pos
+            {"Turn", "0"},
+            {"Drive", "180", "5000", "True"},
+            {"Turn", "-45"},
+            {"Drive", "180", "5000", "False"},
+
+            //Place
+            {"Rotate", ".1"},
+            {"DLift", "0"},
+            {"Lift", "3500"},
             {"Drive", "180", "1000", "False"},
-            {"Lift", "0"},
-            {"Drive", "0", "1000", "False"},
-            {"Turn", "180"},
+            {"Claw", "Open"},
+
+
 //            {"Drive", "135", "10000", "True"},
 //
 //            //Place
@@ -47,7 +77,7 @@ public class LeftAuto extends LinearOpMode {
         dt.init(hardwareMap);
         lin.init(hardwareMap);
         turn.init(hardwareMap);
-//        claw.init(hardwareMap);
+        claw.init(hardwareMap);
 
         waitForStart();
 
@@ -98,6 +128,7 @@ public class LeftAuto extends LinearOpMode {
                         packet.put("Lin", lin.getPos());
                         dashboard.sendTelemetryPacket(packet);
                     }
+                    lin.setPower(0);
                     break;
                 case "DLift":
                     theta = Double.parseDouble(instruction[1]);
@@ -107,18 +138,19 @@ public class LeftAuto extends LinearOpMode {
                         }
                         turn.gotoMaxPosition(theta);
                     }
+                    turn.setPower(0);
                     break;
-//                case "Rotate":
-//                    theta = Double.parseDouble(instruction[1]);
-//                    claw.setRotate(theta);
-//                    break;
-//                case "Claw":
-//                    if (instruction[1].equals("Close")){
-//                        claw.setClaw(.8);
-//                    }else{
-//                        claw.setClaw(.5);
-//                    }
-//                    break;
+                case "Rotate":
+                    theta = Double.parseDouble(instruction[1]);
+                    claw.setRotate(theta);
+                    break;
+                case "Claw":
+                    if (instruction[1].equals("Close")){
+                        claw.setClaw(.8);
+                    }else{
+                        claw.setClaw(.5);
+                    }
+                    break;
             }
         }
     }

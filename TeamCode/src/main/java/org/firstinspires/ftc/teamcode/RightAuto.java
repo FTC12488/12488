@@ -28,7 +28,7 @@ public class RightAuto extends LinearOpMode {
             //park lol
             {"Drive", "0", "8000", "True"},
             {"Turn", "180"},
-//            {"DLift", "0"},
+            {"DLift", "0"},
             {"Lift", "1600"},
             {"Drive", "180", "2000", "False"},
             {"Lift", "0"},
@@ -70,8 +70,7 @@ public class RightAuto extends LinearOpMode {
                     double oldAngle = dt.getImu().getAngularOrientation().firstAngle;
                     theta = Double.parseDouble(instruction[1]);
                     distance = Double.parseDouble(instruction[2]);
-                    dt.driveToLocation(PidConstantsDistance, theta, distance, 4.5);
-
+                    dt.driveToLocation(PidConstantsDistance, theta, distance, 4);
                     //Fix Angle
                     if(instruction[3].equals("True")) {
                         timeout = System.nanoTime(); //Make sure it's basing the timeout on time passed since robot reached target loc
@@ -102,15 +101,22 @@ public class RightAuto extends LinearOpMode {
                 case "Lift":
                     distance = Double.parseDouble(instruction[1]);
                     while(Math.abs(distance-lin.getPos()) > 45){
+                        if((System.nanoTime() - timeout)/1e9 > 3){
+                            break;
+                        }
                         lin.gotoPosition(distance, new CustomPID(PidConstantsAngle));
                         packet.put("Lin", lin.getPos());
                         dashboard.sendTelemetryPacket(packet);
                     }
-                    lin.setPower(0);
                     break;
                 case "DLift":
                     theta = Double.parseDouble(instruction[1]);
-                    turn.gotoMaxPosition(theta);
+                    while(Math.abs(theta-lin.getPos()) > .05){
+                        if((System.nanoTime() - timeout)/1e9 > 3){
+                            break;
+                        }
+                        turn.gotoMaxPosition(theta);
+                    }
                     break;
 //                case "Rotate":
 //                    theta = Double.parseDouble(instruction[1]);
@@ -127,3 +133,4 @@ public class RightAuto extends LinearOpMode {
         }
     }
 }
+
