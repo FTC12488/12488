@@ -97,10 +97,10 @@ public class DriveTrainTest extends LinearOpMode {
             }
             //intk
             if (gamepad2.left_bumper) {
-                claw.setPow(0);
+                claw.setIntk(0);
             }
             if (gamepad2.right_bumper) {
-                claw.setPow(-1);
+                claw.setIntk(-1);
             }
             //Reinit Operator
             if(gamepad2.dpad_left){
