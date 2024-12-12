@@ -17,8 +17,8 @@ public class LeftAuto extends LinearOpMode {
     TelemetryPacket packet = new TelemetryPacket();
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
-    public static double[] PidConstantsAngle = new double[]{1, 200, 0};
-    private final double[] PidConstantsDistance = new double[]{0.0005, 0.01, 0};
+    public static double[] PidConstantsAngle = new double[]{1, 350, 0};
+    public static double[] PidConstantsDistance = new double[]{0.0005, 0.1, 0};
 
     private final DriveTrain dt = new DriveTrain();
     private final LinearLift lin = new LinearLift();
@@ -38,28 +38,36 @@ public class LeftAuto extends LinearOpMode {
 //            {"Drive", "180", "7500", "True"},
 
             //Position
-            {"Drive", "0", "12000", "True"},
+            {"Drive", "90", "6000", "True"},
+            {"Drive", "0", "13000", "True"},
             {"Turn", "90"},
+            {"Drive", "180", "2000", "False"},
             {"Rotate", ".7"},
             {"Claw", "Close"},
             {"Claw", "Open"},
-            {"DLift", ".75"},
-            {"Drive", "-10", "5000", "False"},
             {"Turn", "90"},
+            {"DLift", ".83"},
+            {"Drive", "350", "3000", "False"},
             //Grab
             {"Claw", "Close"},
 
+            //Sleep
+            {"Sleep", "500"},
+
             //Get in Pos
             {"Turn", "0"},
-            {"Drive", "180", "5000", "True"},
+            {"Drive", "180", "4000", "True"},
             {"Turn", "-45"},
-            {"Drive", "180", "5000", "False"},
+            {"Drive", "180", "4000", "False"},
 
             //Place
-            {"Rotate", ".1"},
-            {"DLift", "0"},
-            {"Lift", "3500"},
-            {"Drive", "180", "1000", "False"},
+            {"Rotate", ".05"},
+            {"DLift", "0.05"},
+
+            //Sleep
+            {"Sleep", "1000"},
+            {"Lift", "4000"},
+            {"Drive", "180", "2500", "False"},
             {"Claw", "Open"},
 
 
@@ -151,6 +159,9 @@ public class LeftAuto extends LinearOpMode {
                         claw.setClaw(.5);
                     }
                     break;
+                case "Sleep":
+                    long ms = Long.parseLong(instruction[1]);
+                    sleep(ms);
             }
         }
     }
