@@ -26,7 +26,7 @@ public class LeftAuto extends LinearOpMode {
     private final Claw claw = new Claw();
 
     public static String[][] instructions = {
-            //park lol
+            //Place pre-loaded specimen
 //            {"Drive", "0", "8000", "True"},
 //            {"Turn", "180"},
 //            {"DLift", "0"},
@@ -48,6 +48,7 @@ public class LeftAuto extends LinearOpMode {
             {"Turn", "90"},
             {"DLift", ".83"},
             {"Drive", "350", "3000", "False"},
+
             //Grab
             {"Claw", "Close"},
 
@@ -69,15 +70,6 @@ public class LeftAuto extends LinearOpMode {
             {"Lift", "4000"},
             {"Drive", "180", "2500", "False"},
             {"Claw", "Open"},
-
-
-//            {"Drive", "135", "10000", "True"},
-//
-//            //Place
-//            {"Lift", "400"},
-//
-//            //Back up
-//            {"Drive", "180", "2000"},\
     };
 
     @Override

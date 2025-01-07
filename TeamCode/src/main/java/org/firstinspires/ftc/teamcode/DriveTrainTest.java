@@ -91,9 +91,12 @@ public class DriveTrainTest extends LinearOpMode {
             //Claw Open/close
             if (gamepad2.left_bumper) {
                 claw.setClaw(.5);
-            }
-            if (gamepad2.right_bumper) {
+//                claw.setPower(.5);
+            } else if (gamepad2.right_bumper) {
                 claw.setClaw(.8);
+//                claw.setPower(-.5);
+//            }else{
+//                claw.setPower(0);
             }
             //Reinit Operator
             if(gamepad2.dpad_left){

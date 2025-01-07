@@ -25,7 +25,7 @@ public class RightAuto extends LinearOpMode {
 //    private final Claw claw = new Claw();
 
     public static String[][] instructions = {
-            //park lol
+            //Place pre-loaded specimen
             {"Drive", "0", "8000", "True"},
             {"Turn", "180"},
             {"DLift", "0"},

@@ -11,12 +11,15 @@ import org.firstinspires.ftc.teamcode.CustomPID;
 public class Claw {
     private Servo claw;
     private Servo rotate;
+    private CRServo intake;
 
     public void init(HardwareMap hwMap){
         this.claw = hwMap.get(Servo.class, "claw");
         this.claw.setDirection(Servo.Direction.REVERSE);
         this.rotate = hwMap.get(Servo.class, "rotate");
         this.rotate.setDirection(Servo.Direction.REVERSE);
+        this.intake = hwMap.get(CRServo.class, "intake");
+        this.intake.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void setClaw(double pos) {
@@ -27,6 +30,9 @@ public class Claw {
         this.rotate.setPosition(pos);
     }
 
+    public void setPower(double pow){
+        this.intake.setPower(pow);
+    }
 
     public double getPos(){return this.claw.getPosition();}
     public double getRotate(){return this.rotate.getPosition();}
