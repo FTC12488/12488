@@ -74,7 +74,7 @@ public class DriveTrain {
         this.bl.setPower(power * sin/max + rightStickX);
         this.br.setPower(power * cos/max - rightStickX);
     }
-    public void fieldCentricDrive(double leftStickY, double leftStickX, double rightStickX, double slow){
+    public void fieldCentricDrive(double leftStickY, double leftStickX, double rightStickX, double slow, LinearLift lift){
         double y = -1 * leftStickY; // Remember, this is reversed!
         double x = leftStickX * 1.1; // Counteract imperfect strafing
 
@@ -90,10 +90,10 @@ public class DriveTrain {
         double frontRightPower = (rotY - rotX - rightStickX) / (denominator * slow);
         double backRightPower = (rotY + rotX - rightStickX) / (denominator * slow);
 
-        this.fl.setPower(frontLeftPower*this.speed);
-        this.fr.setPower(frontRightPower*this.speed);
-        this.bl.setPower(backLeftPower*this.speed);
-        this.br.setPower(backRightPower*this.speed);
+        this.fl.setPower(frontLeftPower*this.speed*lift.pPower()*lift.pPower());
+        this.fr.setPower(frontRightPower*this.speed*lift.pPower()*lift.pPower());
+        this.bl.setPower(backLeftPower*this.speed*lift.pPower()*lift.pPower());
+        this.br.setPower(backRightPower*this.speed*lift.pPower()*lift.pPower());
 
         // Accel
 //        if (Math.abs(leftStickX) > 0.1 || Math.abs(leftStickY) > 0.1){

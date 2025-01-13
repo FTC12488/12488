@@ -41,6 +41,7 @@ public class DriveTrainTest extends LinearOpMode {
         waitForStart();
 
         claw.setRotate(.5);
+        claw.setClaw(.5);
 
         while (opModeIsActive()) {
 //            if(true){
@@ -52,7 +53,7 @@ public class DriveTrainTest extends LinearOpMode {
 //                toggle = !toggle;
 //            }
             //Drive Train
-            dt.fieldCentricDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, 1);
+            dt.fieldCentricDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, 1, lin);
             if(gamepad1.a){
                 angle = dt.getImu().getAngularOrientation().firstAngle;
             }
@@ -90,10 +91,10 @@ public class DriveTrainTest extends LinearOpMode {
             }
             //Claw Open/close
             if (gamepad2.left_bumper) {
-                claw.setClaw(.5);
+                claw.setClaw(0);
 //                claw.setPower(.5);
             } else if (gamepad2.right_bumper) {
-                claw.setClaw(.8);
+                claw.setClaw(.43);
 //                claw.setPower(-.5);
 //            }else{
 //                claw.setPower(0);

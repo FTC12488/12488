@@ -12,7 +12,7 @@ public class LinearLift {
     private DcMotor lift;
     private final double INCHTOENCH = 115.35;
 
-    private final double LINMAX = 3500;
+    private final double LINMAX = 2150;
 
     public void init(HardwareMap hwMap){
         this.lift = hwMap.get(DcMotor.class, "lift");
@@ -43,11 +43,22 @@ public class LinearLift {
             this.lift.setPower(0.0);
         }
     }
+    //Percentage power, calculated based on how far we are from the max position, further = more power
+    public double pPower(){
+        return (1-Math.abs(getPos()/LINMAX));
+    }
     public void moveLift(double gamepadInput){
         if (Math.abs(this.lift.getCurrentPosition()) < LINMAX) {
-            this.lift.setPower(-0.6 * gamepadInput);
+            //Percentage power, calculated based on how far we are from the max position, further = more power
+            double p = pPower();
+            //Constant power, added to input in order to counteract gravity
+            double c = Math.abs(getPos()/LINMAX * 0.1);
+            if(gamepadInput > 0){
+                p = .4;
+            }
+            this.lift.setPower((-p * gamepadInput) + c);
         } else {
-            this.lift.setPower(-0.15);
+            this.lift.setPower(0);
         }
     }
     public DcMotor getLift() {
