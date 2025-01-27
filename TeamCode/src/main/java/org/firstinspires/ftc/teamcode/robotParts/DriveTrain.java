@@ -90,10 +90,14 @@ public class DriveTrain {
         double frontRightPower = (rotY - rotX - rightStickX) / (denominator * slow);
         double backRightPower = (rotY + rotX - rightStickX) / (denominator * slow);
 
-        this.fl.setPower(frontLeftPower*this.speed*lift.pPower()*lift.pPower());
-        this.fr.setPower(frontRightPower*this.speed*lift.pPower()*lift.pPower());
-        this.bl.setPower(backLeftPower*this.speed*lift.pPower()*lift.pPower());
-        this.br.setPower(backRightPower*this.speed*lift.pPower()*lift.pPower());
+        //Drive slower if the lift is extended.
+        double liftPowerScaling = Math.min(Math.pow(lift.pPower(), 1.5) + 0.3, 1.0);
+        double finalSpeed = Math.max(this.speed*liftPowerScaling, 0.15);
+
+        this.fl.setPower(frontLeftPower*this.speed*liftPowerScaling);
+        this.fr.setPower(frontRightPower*this.speed*liftPowerScaling);
+        this.bl.setPower(backLeftPower*this.speed*liftPowerScaling);
+        this.br.setPower(backRightPower*this.speed*liftPowerScaling);
 
         // Accel
 //        if (Math.abs(leftStickX) > 0.1 || Math.abs(leftStickY) > 0.1){
@@ -151,7 +155,7 @@ public class DriveTrain {
     }
     public void fixAngle(double[] PidConstants, double angle) {
         CustomPID angleControl = new CustomPID(PidConstants);
-        angleControl.setSetpoint(Math.toRadians(angle));
+        angleControl.setSetpoint(angleWrap(Math.toRadians(angle)));
 
         double[] results = angleControl.calculateGivenError(angleWrap(Math.toRadians(angle)-imu.getAngularOrientation().firstAngle));
         this.fl.setPower(-results[0]);
@@ -185,7 +189,7 @@ public class DriveTrain {
     }
 
     public void incSpeed(double inc){
-        this.speed = Math.min(Math.max((this.speed+inc), 0.3), 0.8);
+        this.speed = Math.min(Math.max((this.speed+inc), 0.3), 0.5);
     }
 
     public BNO055IMU getImu() {

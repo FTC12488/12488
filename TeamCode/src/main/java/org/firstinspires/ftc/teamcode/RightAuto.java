@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.robotParts.DriveTrain;
 import org.firstinspires.ftc.teamcode.robotParts.LinearLift;
 import org.firstinspires.ftc.teamcode.robotParts.Turn;
+import org.firstinspires.ftc.teamcode.robotParts.Claw;
 
 @Autonomous(name="RightAuto", group="Linear OpMode")
 @Config
@@ -16,40 +17,44 @@ public class RightAuto extends LinearOpMode {
     TelemetryPacket packet = new TelemetryPacket();
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
-    public static double[] PidConstantsAngle = new double[]{1, 200, 0};
-    private final double[] PidConstantsDistance = new double[]{0.0005, 0.01, 0};
+    public static double[] PidConstantsAngle = new double[]{1, 350, 0};
+    private final double[] PidConstantsDistance = new double[]{0.0005, 0.15, 0};
 
     private final DriveTrain dt = new DriveTrain();
     private final LinearLift lin = new LinearLift();
     private final Turn turn = new Turn();
-//    private final Claw claw = new Claw();
+    private final Claw claw = new Claw();
 
     public static String[][] instructions = {
             //Place pre-loaded specimen
-            {"Drive", "0", "8000", "True"},
+            {"Claw", "Close"},
+            {"Rotate", "0.5"},
+            {"Drive", "0", "9000", "True"},
             {"Turn", "180"},
             {"DLift", "0"},
-            {"Lift", "1600"},
+            {"Lift", "600"},
+            {"Rotate", "0.4"},
             {"Drive", "180", "2000", "False"},
             {"Lift", "0"},
+            {"Claw", "Open"},
             {"Drive", "0", "2000", "False"},
-            {"Turn", "180"},
+            {"Turn", "0"},
             {"Drive", "180", "7500", "True"},
 
             //Test Right Auton (Figure NNN - "Pushbot")
-//            {"Drive", "270", "8000", "True"},
-//            {"Drive", "0", "17000", "True"},
-//
-//            {"Drive", "270", "2000", "True"},
-//            {"Drive", "180", "14000", "True"},
-//            {"Drive", "0", "14000", "True"},
-//
-//            {"Drive", "270", "2000", "True"},
-//            {"Drive", "180", "14000", "True"},
-//            {"Drive", "0", "14000", "True"},
-//
-//            {"Drive", "270", "1000", "True"},
-//            {"Drive", "180", "15000", "True"},
+            {"Drive", "270", "10000", "True"},
+            {"Drive", "0", "17000", "True"},
+
+            {"Drive", "270", "2000", "True"},
+            {"Drive", "180", "14000", "True"},
+            {"Drive", "0", "14000", "True"},
+
+            {"Drive", "270", "2000", "True"},
+            {"Drive", "180", "14000", "True"},
+            {"Drive", "0", "14000", "True"},
+
+            {"Drive", "270", "1000", "True"},
+            {"Drive", "180", "15000", "True"},
     };
 
     @Override
@@ -57,9 +62,11 @@ public class RightAuto extends LinearOpMode {
         dt.init(hardwareMap);
         lin.init(hardwareMap);
         turn.init(hardwareMap);
-//        claw.init(hardwareMap);
+        claw.init(hardwareMap);
 
         waitForStart();
+
+        claw.setClaw(.24);
 
         for(String[] instruction : instructions){
             double theta = 0;
@@ -100,14 +107,19 @@ public class RightAuto extends LinearOpMode {
                     break;
                 case "Lift":
                     distance = Double.parseDouble(instruction[1]);
-                    while(Math.abs(distance-lin.getPos()) > 45){
+                    while(Math.abs(lin.getPos() - distance) > 50){
                         if((System.nanoTime() - timeout)/1e9 > 3){
                             break;
                         }
-                        lin.gotoPosition(distance, new CustomPID(PidConstantsAngle));
+                        if(distance - Math.abs(lin.getPos()) > 0){
+                            lin.moveLift(-1.0);
+                        }else{
+                            lin.moveLift(1.0);
+                        }
                         packet.put("Lin", lin.getPos());
                         dashboard.sendTelemetryPacket(packet);
                     }
+                    lin.setPower(0);
                     break;
                 case "DLift":
                     theta = Double.parseDouble(instruction[1]);
@@ -117,18 +129,22 @@ public class RightAuto extends LinearOpMode {
                         }
                         turn.gotoMaxPosition(theta);
                     }
+                    dt.zeroMotors();
                     break;
-//                case "Rotate":
-//                    theta = Double.parseDouble(instruction[1]);
-//                    claw.setRotate(theta);
-//                    break;
-//                case "Claw":
-//                    if (instruction[1].equals("Close")){
-//                        claw.setClaw(.8);
-//                    }else{
-//                        claw.setClaw(.5);
-//                    }
-//                    break;
+                case "Rotate":
+                    theta = Double.parseDouble(instruction[1]);
+                    claw.setRotate(theta);
+                    break;
+                case "Claw":
+                    if (instruction[1].equals("Close")){
+                        claw.setClaw(.24);
+                    }else{
+                        claw.setClaw(.5);
+                    }
+                    break;
+                case "Sleep":
+                    long ms = Long.parseLong(instruction[1]);
+                    sleep(ms);
             }
         }
     }

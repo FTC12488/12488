@@ -19,9 +19,11 @@ public class DriveTrainTest extends LinearOpMode {
     FtcDashboard dashboard = FtcDashboard.getInstance();
     public static double distance;
     public static double targetTurn = 1.05;
-    public static double targetRotate = 0.63;
-    public static double targetRotatePlace = .12;
-    public static double angle;
+    public static double targetRotateUp = 0.5;
+    public static double targetRotateDown = 0.61;
+    public static double targetRotatePlace = 0.3;
+    private final double PLACEANGLE = -30;
+    private final double GRABANGLE = -90;
     public static double[] PidConstantsAngle = new double[]{1, 200, 0};
     private final double[] PidConstantsDistance = new double[]{0.0005, 0.01, 0};
     public static double[] PidConstantsLift = new double[]{.25, 25, 0.009};
@@ -54,11 +56,11 @@ public class DriveTrainTest extends LinearOpMode {
 //            }
             //Drive Train
             dt.fieldCentricDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, 1, lin);
-            if(gamepad1.a){
-                angle = dt.getImu().getAngularOrientation().firstAngle;
+            if(gamepad1.x){
+                dt.fixAngle(PidConstantsAngle, GRABANGLE);
             }
-            if(gamepad1.b){
-                dt.fixAngle(PidConstantsAngle, angle);
+            if(gamepad1.y){
+                dt.fixAngle(PidConstantsAngle, PLACEANGLE);
             }
             if(gamepad1.dpad_left){
                 dt.reInitFieldCentric();
@@ -71,7 +73,12 @@ public class DriveTrainTest extends LinearOpMode {
                 dt.incSpeed(-0.4);
             }
             //Lift lift
-            if(gamepad2.left_stick_y!=0 && ((turn.getPos() >= -300) || (gamepad2.dpad_down && (lin.getPos() <= 600)))){
+            if(gamepad2.left_stick_y!=0){
+                if (Math.abs(turn.getPos()) > 0.1) {
+                    lin.setMAX(600);
+                }else{
+                    lin.setMAX(-1);
+                }
                 lin.moveLift(gamepad2.left_stick_y);
             }else{
                 lin.setPower(0);
@@ -84,17 +91,20 @@ public class DriveTrainTest extends LinearOpMode {
             }
             //Claw
             if (gamepad2.right_trigger != 0) {
-                claw.setRotate(claw.getRotate()+0.005);
+                claw.setRotate(claw.getRotate()+0.01);
             }
             if (gamepad2.left_trigger != 0) {
-                claw.setRotate(claw.getRotate()-0.005);
+                claw.setRotate(claw.getRotate()-0.01);
+            }
+            if (gamepad2.dpad_up){
+                claw.setRotate(0.151);
             }
             //Claw Open/close
             if (gamepad2.left_bumper) {
-                claw.setClaw(0);
+                claw.setClaw(.5); //.5
 //                claw.setPower(.5);
             } else if (gamepad2.right_bumper) {
-                claw.setClaw(.43);
+                claw.setClaw(.24); //.24
 //                claw.setPower(-.5);
 //            }else{
 //                claw.setPower(0);
@@ -105,18 +115,27 @@ public class DriveTrainTest extends LinearOpMode {
                 turn.reInit();
             }
             //Presets
-            if(gamepad2.x && (lin.getPos() < 300)){
-                turn.gotoMaxPosition(targetTurn);
-                claw.setRotate(targetRotate);
+            if(gamepad2.x){
+                if((lin.getPos() < 600)){
+                    turn.gotoMaxPosition(targetTurn);
+                }
+                claw.setRotate(targetRotateUp);
             }
             if(gamepad2.a){
-                turn.gotoMaxPosition(.75);
+                claw.setRotate(targetRotateDown);
             }
             if(gamepad2.y){
-                turn.gotoMaxPosition(0);
-                claw.setRotate(targetRotatePlace);
+                if((lin.getPos() < 300)){
+                    turn.gotoMaxPosition(0);
+                }else{
+                    claw.setRotate(targetRotatePlace);
+                    claw.setClaw(.5);
+                }
             }
-            packet.put("Angle", dt.getImu().getAngularOrientation().firstAngle);
+            if(gamepad2.b){
+                dt.incSpeed(-0.9);
+            }
+//            packet.put("Angle", angle);
             packet.put("X", dt.getxOdom().getCurrentPosition());
             packet.put("Y", dt.getyOdom().getCurrentPosition());
             packet.put("Lin", lin.getPos());

@@ -10,8 +10,8 @@ public class Turn {
     private DcMotor dlift;
 
     private final double INCHTOENCH = 115.35;
-    private static double TURNSTART = -1000;
-    private final double TURNMAX = 1600;
+    private static double TURNSTART = 0;
+    private final double TURNMAX = 2400;
 
     public void init(HardwareMap hwMap){
         this.dlift = hwMap.get(DcMotor.class, "dlift");
@@ -34,10 +34,10 @@ public class Turn {
         return Math.abs(this.dlift.getCurrentPosition()+TURNSTART)/TURNMAX;
     }
     public void turn(double gamepadInput){
-        if (Math.abs(this.dlift.getCurrentPosition()+TURNSTART) < TURNMAX) {
-            this.dlift.setPower(-0.2 * gamepadInput);
+        if ((Math.abs(this.dlift.getCurrentPosition()+TURNSTART) < TURNMAX) || gamepadInput < 0) {
+            this.dlift.setPower(-0.35 * gamepadInput);
         } else {
-            this.dlift.setPower(-0.05);
+            this.dlift.setPower(0);
         }
     }
 

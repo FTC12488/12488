@@ -18,7 +18,7 @@ public class LeftAuto extends LinearOpMode {
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
     public static double[] PidConstantsAngle = new double[]{1, 350, 0};
-    public static double[] PidConstantsDistance = new double[]{0.0005, 0.1, 0};
+    public static double[] PidConstantsDistance = new double[]{0.0005, 0.15, 0};
 
     private final DriveTrain dt = new DriveTrain();
     private final LinearLift lin = new LinearLift();
@@ -27,15 +27,19 @@ public class LeftAuto extends LinearOpMode {
 
     public static String[][] instructions = {
             //Place pre-loaded specimen
-//            {"Drive", "0", "8000", "True"},
-//            {"Turn", "180"},
-//            {"DLift", "0"},
-//            {"Lift", "1600"},
-//            {"Drive", "180", "2000", "False"},
-//            {"Lift", "0"},
-//            {"Drive", "0", "2000", "False"},
-//            {"Turn", "180"},
-//            {"Drive", "180", "7500", "True"},
+            {"Claw", "Close"},
+            {"Rotate", "0.5"},
+            {"Drive", "0", "9000", "True"},
+            {"Turn", "180"},
+            {"DLift", "0"},
+            {"Lift", "600"},
+            {"Rotate", "0.4"},
+            {"Drive", "180", "2000", "False"},
+            {"Lift", "0"},
+            {"Claw", "Open"},
+            {"Drive", "0", "2000", "False"},
+            {"Turn", "0"},
+            {"Drive", "180", "7500", "True"},
 
             //Position
             {"Drive", "90", "6000", "True"},
@@ -120,11 +124,15 @@ public class LeftAuto extends LinearOpMode {
                     break;
                 case "Lift":
                     distance = Double.parseDouble(instruction[1]);
-                    while(Math.abs(distance-lin.getPos()) > 45){
+                    while(Math.abs(lin.getPos() - distance) > 50){
                         if((System.nanoTime() - timeout)/1e9 > 3){
                             break;
                         }
-                        lin.gotoPosition(distance, new CustomPID(PidConstantsAngle));
+                        if(distance - Math.abs(lin.getPos()) > 0){
+                            lin.moveLift(-1.0);
+                        }else{
+                            lin.moveLift(1.0);
+                        }
                         packet.put("Lin", lin.getPos());
                         dashboard.sendTelemetryPacket(packet);
                     }
@@ -146,7 +154,7 @@ public class LeftAuto extends LinearOpMode {
                     break;
                 case "Claw":
                     if (instruction[1].equals("Close")){
-                        claw.setClaw(.8);
+                        claw.setClaw(.24);
                     }else{
                         claw.setClaw(.5);
                     }
