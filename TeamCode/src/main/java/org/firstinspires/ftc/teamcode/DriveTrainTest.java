@@ -101,13 +101,13 @@ public class DriveTrainTest extends LinearOpMode {
             }
             //Claw Open/close
             if (gamepad2.left_bumper) {
-                claw.setClaw(.5); //.5
-//                claw.setPower(.5);
+//                claw.setClaw(.5); //.5
+                claw.setPower(.5);
             } else if (gamepad2.right_bumper) {
-                claw.setClaw(.24); //.24
-//                claw.setPower(-.5);
-//            }else{
-//                claw.setPower(0);
+//                claw.setClaw(.24); //.24
+                claw.setPower(-.5);
+            }else{
+                claw.setPower(0);
             }
             //Reinit Operator
             if(gamepad2.dpad_left){
@@ -117,7 +117,7 @@ public class DriveTrainTest extends LinearOpMode {
             //Presets
             if(gamepad2.x){
                 if((lin.getPos() < 600)){
-                    turn.gotoMaxPosition(targetTurn);
+                    turn.getToPos(targetTurn);
                 }
                 claw.setRotate(targetRotateUp);
             }
@@ -126,7 +126,7 @@ public class DriveTrainTest extends LinearOpMode {
             }
             if(gamepad2.y){
                 if((lin.getPos() < 300)){
-                    turn.gotoMaxPosition(0);
+                    turn.getToPos(0);
                 }else{
                     claw.setRotate(targetRotatePlace);
                     claw.setClaw(.5);

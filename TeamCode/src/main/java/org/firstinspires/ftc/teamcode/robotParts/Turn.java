@@ -10,7 +10,6 @@ public class Turn {
     private DcMotor dlift;
 
     private final double INCHTOENCH = 115.35;
-    private static double TURNSTART = 0;
     private final double TURNMAX = 2400;
 
     public void init(HardwareMap hwMap){
@@ -24,29 +23,35 @@ public class Turn {
         this.dlift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.dlift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.dlift.setDirection(DcMotorSimple.Direction.REVERSE);
-        TURNSTART = 0;
     }
 
     public void setPower(double power){
         this.dlift.setPower(power);
     }
     public double getPos(){
-        return Math.abs(this.dlift.getCurrentPosition()+TURNSTART)/TURNMAX;
+        return Math.abs(this.dlift.getCurrentPosition())/TURNMAX;
     }
     public void turn(double gamepadInput){
-        if ((Math.abs(this.dlift.getCurrentPosition()+TURNSTART) < TURNMAX) || gamepadInput < 0) {
+        if ((Math.abs(this.dlift.getCurrentPosition()) < TURNMAX) || gamepadInput < 0) {
             this.dlift.setPower(-0.35 * gamepadInput);
         } else {
             this.dlift.setPower(0);
         }
     }
 
-    public void gotoMaxPosition(double percent){
+    public void getToPos(double percent){
+        // Calc power
         CustomPID c1 = new CustomPID(new double[]{.0000012, 0.000035, 0.000015});
         c1.setSetpoint(-TURNMAX * percent);
-        if (Math.abs(((-TURNMAX * percent)-(this.dlift.getCurrentPosition()+TURNSTART))) > 35){
-            double[] outputs = c1.calculateGivenRaw(this.dlift.getCurrentPosition()+TURNSTART);
-            double power = outputs[0];
+        double[] outputs = c1.calculateGivenRaw(this.dlift.getCurrentPosition());
+        double power = outputs[0];
+
+        // dw about it
+        double target = Math.abs(TURNMAX * percent);
+        double currentPos = Math.abs(this.dlift.getCurrentPosition());
+
+        // Set power or something
+        if ((power > 0 && currentPos > target) || (power < 0 && currentPos < target)){
             this.dlift.setPower(power);
         }else{
             this.dlift.setPower(0.0);

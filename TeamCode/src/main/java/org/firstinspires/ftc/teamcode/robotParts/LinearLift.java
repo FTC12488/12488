@@ -60,7 +60,7 @@ public class LinearLift {
             //Constant power, added to input in order to counteract gravity
             double c = Math.abs(getPos()/currentMax * 0.1);
             if(gamepadInput > 0){
-                p = .4;
+                p = .8;
             }
             this.lift.setPower((-p * gamepadInput) + c);
         } else {

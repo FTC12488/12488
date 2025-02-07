@@ -17,7 +17,7 @@ public class RightAuto extends LinearOpMode {
     TelemetryPacket packet = new TelemetryPacket();
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
-    public static double[] PidConstantsAngle = new double[]{1, 350, 0};
+    public static double[] PidConstantsAngle = new double[]{1, 180, 0};
     private final double[] PidConstantsDistance = new double[]{0.0005, 0.15, 0};
 
     private final DriveTrain dt = new DriveTrain();
@@ -64,9 +64,9 @@ public class RightAuto extends LinearOpMode {
         turn.init(hardwareMap);
         claw.init(hardwareMap);
 
-        waitForStart();
-
         claw.setClaw(.24);
+
+        waitForStart();
 
         for(String[] instruction : instructions){
             double theta = 0;
@@ -77,7 +77,7 @@ public class RightAuto extends LinearOpMode {
                     double oldAngle = dt.getImu().getAngularOrientation().firstAngle;
                     theta = Double.parseDouble(instruction[1]);
                     distance = Double.parseDouble(instruction[2]);
-                    dt.driveToLocation(PidConstantsDistance, theta, distance, 4);
+//                    dt.driveToLocation(PidConstantsDistance, theta, distance, 4);
                     //Fix Angle
                     if(instruction[3].equals("True")) {
                         timeout = System.nanoTime(); //Make sure it's basing the timeout on time passed since robot reached target loc
@@ -127,7 +127,7 @@ public class RightAuto extends LinearOpMode {
                         if((System.nanoTime() - timeout)/1e9 > 3){
                             break;
                         }
-                        turn.gotoMaxPosition(theta);
+                        turn.getToPos(theta);
                     }
                     dt.zeroMotors();
                     break;

@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.CustomPID;
 
+import java.util.PriorityQueue;
+
 /**
  * Manages the DriveTrain of the robot
  * Assumes 4-Wheel Mecanum, has support for both field centric drive and robot centric
@@ -20,10 +22,10 @@ public class DriveTrain {
     private DcMotor br;
     private double speed = .8;
     private double timer;
-    private double xPos;
-    private double yPos;
-    private double xPosSave;
-    private double yPosSave;
+    private double xyGradAverage;
+    private PriorityQueue<Double> xyGradients = new PriorityQueue<>();
+    private double oldX;
+    private double oldY;
     private BNO055IMU imu;
     private DcMotor xOdom;
     private DcMotor yOdom;
@@ -55,7 +57,6 @@ public class DriveTrain {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         this.imu.initialize(parameters);
 
-        timer = System.nanoTime();
     }
     public void reInitFieldCentric(){
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -112,36 +113,58 @@ public class DriveTrain {
 //            timer = System.nanoTime();
 //        }
     }
-    public void driveToLocation(double[] PidConstants, double theta, double distance, double timeout){
+
+    public void resetOdoms(){
         this.xOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.yOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.xOdom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.yOdom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        this.timer = System.nanoTime();
+        xyGradients.clear();
+    }
+
+    //Helper method for checking Robot movement
+    public double delF(){
+        double xDiff = (xOdom.getCurrentPosition() - oldX);
+        double yDiff = (yOdom.getCurrentPosition() - oldY);
+
+        double magnitude = Math.hypot(xDiff, yDiff);
+
+        oldX = xOdom.getCurrentPosition(); //current x
+        oldY = yOdom.getCurrentPosition(); //current y
+
+        return magnitude;
+    }
+
+
+    public boolean moveCheck(double tolerance){
+        double xyGrad = delF();
+
+        xyGradients.add(xyGrad); //Add to list of values
+
+        if (xyGradients.size() > 4){
+            Object oldXYGrad = xyGradients.poll(); //Wonky ahh typecasting because xyGradients could be Null
+            if(oldXYGrad != null){
+                xyGradAverage = ((5 * xyGradAverage) - Double.parseDouble(oldXYGrad.toString()))/6;
+            }
+        }
+
+        xyGradAverage = (xyGradAverage*4 + xyGrad) / 5;
+
+        return (xyGradAverage < tolerance) && (xyGradients.size() == 5);
+    }
+
+    public boolean driveToLocation(double[] PidConstants, double theta, double distance){
         theta = Math.toRadians(theta);
         CustomPID distanceControl = new CustomPID(PidConstants);
-//        double currAngle = imu.getAngularOrientation().firstAngle;
         distanceControl.setSetpoint(distance);
-        double timer = System.nanoTime();
-        while(true){
-            double[] results = distanceControl.calculateGivenRaw(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition()));
-            if(results[0] < .05){break;}
-            if((System.nanoTime() - timer)/1e9 > timeout){break;}
-            moveInDirection(theta, results[0]);
-        }
-        zeroMotors();
+        double[] results = distanceControl.calculateGivenRaw(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition()));
+        moveInDirection(theta, results[0]);
+
+        return (delF() > 5.0 || Math.abs(results[0]) > 0.2) || ((System.nanoTime()-timer)/1e6) < 200; //Min time for move
     }
-    public void rememberAndReturn(boolean remember, double[] PidConstants){
-        if (remember){
-            this.xPosSave = this.xPos;
-            this.yPosSave = this.yPos;
-        }else{
-            double xDiff = this.xPos - this.xPosSave;
-            double yDiff = this.yPos - this.yPosSave;
-            double angle = Math.toDegrees(Math.tan(yDiff/xDiff));
-            double distance = Math.sqrt(Math.pow(yDiff, 2) + Math.pow(xDiff, 2));
-            this.driveToLocation(PidConstants, angle, distance, 3);
-        }
-    }
+
     public void zeroMotors(){
         fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -153,7 +176,7 @@ public class DriveTrain {
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
-    public void fixAngle(double[] PidConstants, double angle) {
+    public boolean fixAngle(double[] PidConstants, double angle) {
         CustomPID angleControl = new CustomPID(PidConstants);
         angleControl.setSetpoint(angleWrap(Math.toRadians(angle)));
 
@@ -162,6 +185,8 @@ public class DriveTrain {
         this.fr.setPower(results[0]);
         this.bl.setPower(-results[0]);
         this.br.setPower(results[0]);
+
+        return delF() > 4.0 || ((System.nanoTime()-timer)/1e6) < 100;
     }
     private  double angleWrap(double radians){
         while(radians > Math.PI){
@@ -175,8 +200,8 @@ public class DriveTrain {
 
     ///Moves robot in some Direction given a motor power (0-1) and an angle theta in radians (polar coords)
     public void moveInDirection(double theta, double power){
-        //Account for 38 degree offset (Motor powers are weird, IDK)
-        theta +=  + 36./180*Math.PI;
+        //Account for [idk] degree offset (Motor powers are weird, IDK)
+        theta += 45./180*Math.PI;
 
         //Convert to motor powers
         double sin = Math.sin(theta);
@@ -207,4 +232,6 @@ public class DriveTrain {
     public double getSpeed(){return this.speed;}
     public double getxPos(){return this.xOdom.getCurrentPosition();}
     public double getyPos(){return this.yOdom.getCurrentPosition();}
+
+    public double getXyGradAverage(){return xyGradAverage;}
 }
