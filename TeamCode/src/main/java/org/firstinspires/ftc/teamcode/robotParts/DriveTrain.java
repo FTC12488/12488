@@ -137,32 +137,21 @@ public class DriveTrain {
         return magnitude;
     }
 
-
-    public boolean moveCheck(double tolerance){
-        double xyGrad = delF();
-
-        xyGradients.add(xyGrad); //Add to list of values
-
-        if (xyGradients.size() > 4){
-            Object oldXYGrad = xyGradients.poll(); //Wonky ahh typecasting because xyGradients could be Null
-            if(oldXYGrad != null){
-                xyGradAverage = ((5 * xyGradAverage) - Double.parseDouble(oldXYGrad.toString()))/6;
-            }
-        }
-
-        xyGradAverage = (xyGradAverage*4 + xyGrad) / 5;
-
-        return (xyGradAverage < tolerance) && (xyGradients.size() == 5);
-    }
-
-    public boolean driveToLocation(double[] PidConstants, double theta, double distance){
-        theta = Math.toRadians(theta);
-        CustomPID distanceControl = new CustomPID(PidConstants);
+    ///Moves the Robot in some direction + rotates the robot to face some given orientation while driving
+    public boolean moveRobot(double[] PidConstantsMove, double[] PidConstantsRot, double driveAngle, double distance, double finalOrientation){
+        //Setup PIDs
+        driveAngle = Math.toRadians(driveAngle);
+        CustomPID distanceControl = new CustomPID(PidConstantsMove);
+        CustomPID angleControl = new CustomPID(PidConstantsRot);
         distanceControl.setSetpoint(distance);
-        double[] results = distanceControl.calculateGivenRaw(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition()));
-        moveInDirection(theta, results[0]);
+        angleControl.setSetpoint(angleWrap(Math.toRadians(finalOrientation)));
+        double drivePower = distanceControl.calculateGivenRaw(Math.hypot(xOdom.getCurrentPosition(), yOdom.getCurrentPosition()))[0];
+        double rotPower = angleControl.calculateGivenError(angleWrap(Math.toRadians(finalOrientation)-imu.getAngularOrientation().firstAngle))[0];
 
-        return (delF() > 5.0 || Math.abs(results[0]) > 0.2) || ((System.nanoTime()-timer)/1e6) < 200; //Min time for move
+        moveInDirection(driveAngle, drivePower, rotPower);
+
+        //return true so long as SOMETHING is happening || robot has just started moving.
+        return delF() > 5.0 || Math.abs(drivePower) > 0.2 || Math.abs(rotPower) > 0.2 || ((System.nanoTime()-timer)/1e6) < 200;
     }
 
     public void zeroMotors(){
@@ -170,25 +159,14 @@ public class DriveTrain {
         bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        moveInDirection(0, 0);
+        moveInDirection(0, 0, 0);
         fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
-    public boolean fixAngle(double[] PidConstants, double angle) {
-        CustomPID angleControl = new CustomPID(PidConstants);
-        angleControl.setSetpoint(angleWrap(Math.toRadians(angle)));
 
-        double[] results = angleControl.calculateGivenError(angleWrap(Math.toRadians(angle)-imu.getAngularOrientation().firstAngle));
-        this.fl.setPower(-results[0]);
-        this.fr.setPower(results[0]);
-        this.bl.setPower(-results[0]);
-        this.br.setPower(results[0]);
-
-        return delF() > 4.0 || ((System.nanoTime()-timer)/1e6) < 100;
-    }
-    private  double angleWrap(double radians){
+    private double angleWrap(double radians){
         while(radians > Math.PI){
             radians -= 2*Math.PI;
         }
@@ -199,7 +177,7 @@ public class DriveTrain {
     }
 
     ///Moves robot in some Direction given a motor power (0-1) and an angle theta in radians (polar coords)
-    public void moveInDirection(double theta, double power){
+    public void moveInDirection(double theta, double power, double rotPower){
         //Account for [idk] degree offset (Motor powers are weird, IDK)
         theta += 45./180*Math.PI;
 
@@ -207,10 +185,10 @@ public class DriveTrain {
         double sin = Math.sin(theta);
         double cos = Math.cos(theta);
 
-        this.fl.setPower(power * cos);
-        this.fr.setPower(power * sin);
-        this.bl.setPower(power * sin);
-        this.br.setPower(power * cos);
+        this.fl.setPower(power * cos - rotPower);
+        this.fr.setPower(power * sin + rotPower);
+        this.bl.setPower(power * sin - rotPower);
+        this.br.setPower(power * cos + rotPower);
     }
 
     public void incSpeed(double inc){
