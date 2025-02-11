@@ -45,6 +45,7 @@ public class LeftAuto extends LinearOpMode {
         /// Value[0] is the name
         /// Value[1] is the value
         /// Value[1-3] (drive only): Distance, Drive Angle, Final Orientation
+        /// Setting Value[1-3] to NULL will CANCEL any current targets
     private HashMap<Integer, String[]> instructions = new HashMap<Integer, String[]>(Map.of(
             0, new String[]{"Drive", "0.0", "0.0", "0.0"},
             3, new String[]{"Lift", "0.0"},
@@ -61,23 +62,27 @@ public class LeftAuto extends LinearOpMode {
 
     //Runs EVERY LOOP
     private void doLoop() {
-        try{
-            //Drive train
+        //Drive train
+        if (targets.get("Drive") != null && targets.get("DAngle") != null && targets.get("Turn") != null){
             dt.moveRobot(PidConstantsDistance, PidConstantsAngle, Double.parseDouble(targets.get("Drive")), Double.parseDouble(targets.get("DAngle")), Double.parseDouble(targets.get("Turn")));
-            //Linear Lift
+        }
+        //Linear Lift
+        if (targets.get("Lift") != null){
             lin.moveLift(Double.parseDouble(targets.get("Lift")));
-            //"Down" Lift
+        }
+        //"Down" Lift
+        if (targets.get("Dlift") != null){
             turn.getToPos(Double.parseDouble(targets.get("Dlift")));
-            //Rotate Claw
+        }
+        //Rotate Claw
+        if (targets.get("Rotate") != null){
             claw.setRotate(Double.parseDouble(targets.get("Rotate")));
-            //Claw
-            if (targets.get("Claw").equals("Open")){
-                claw.setClaw(5);
-            }else{
-                claw.setClaw(.24);
-            }
-        }catch (NullPointerException exception){
-            packet.put("Null Pointer. One or more values are null:", exception);
+        }
+        //Claw
+        if (targets.get("Claw") != null && targets.get("Claw").equals("Open")){
+            claw.setClaw(5);
+        }else{
+            claw.setClaw(.24);
         }
 
         //Telemetry
@@ -100,6 +105,7 @@ public class LeftAuto extends LinearOpMode {
         while(opModeIsActive()){
             int timestamp = (int) Math.round((System.nanoTime() - timer) / 1e8);
 
+            //Process Command
             String[] instruction = instructions.get(timestamp);
             if (instruction != null){
                 if(instruction[0].equals("Drive")){
