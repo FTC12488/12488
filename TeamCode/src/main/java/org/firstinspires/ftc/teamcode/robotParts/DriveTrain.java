@@ -46,6 +46,8 @@ public class DriveTrain {
         this.yOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.xOdom.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.yOdom.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.xOdom.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.yOdom.setDirection(DcMotorSimple.Direction.REVERSE);
         this.fl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -114,11 +116,14 @@ public class DriveTrain {
 //        }
     }
 
+    //Odometer Methods
     public void resetOdoms(){
         this.xOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.yOdom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.xOdom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.yOdom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.xOdom.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.yOdom.setDirection(DcMotorSimple.Direction.REVERSE);
 
         this.timer = System.nanoTime();
         xyGradients.clear();
@@ -188,7 +193,7 @@ public class DriveTrain {
 
         return delF() > 4.0 || ((System.nanoTime()-timer)/1e6) < 100;
     }
-    private  double angleWrap(double radians){
+    private double angleWrap(double radians){
         while(radians > Math.PI){
             radians -= 2*Math.PI;
         }
